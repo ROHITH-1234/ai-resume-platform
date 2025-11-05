@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 17, 24, 39;
+  --background-rgb: 249, 250, 251;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  min-height: 100vh;
+}
+
+/* Ensure all text is visible */
+* {
+  color: inherit;
+}
+
+/* Override any dark mode settings */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 17, 24, 39;
+    --background-rgb: 249, 250, 251;
+  }
+  
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-rgb));
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Fix Clerk components text visibility */
+.cl-internal-b3fm6y,
+.cl-userButtonPopoverCard,
+.cl-userButtonPopoverActionButton {
+  color: rgb(17, 24, 39) !important;
+}
+
+/* Ensure proper text colors throughout */
+h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
+  color: inherit;
+}
+
+/* Specific fixes for common elements */
+.text-white {
+  color: white !important;
+}
+
+.text-gray-900 {
+  color: rgb(17, 24, 39) !important;
+}
+
+.text-gray-700 {
+  color: rgb(55, 65, 81) !important;
+}
+
+.text-gray-600 {
+  color: rgb(75, 85, 99) !important;
+}
+
+.text-gray-500 {
+  color: rgb(107, 114, 128) !important;
+}
