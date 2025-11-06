@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 import { Briefcase, Upload, Calendar, TrendingUp, Award, Eye } from 'lucide-react'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/LoadingSpinner'
+import PageTransition from '@/components/PageTransition'
 
 export default function CandidateDashboard() {
   const { getToken } = useAuth()
@@ -14,6 +16,7 @@ export default function CandidateDashboard() {
   const [loading, setLoading] = useState(true)
   const [analytics, setAnalytics] = useState<any>(null)
   const [matches, setMatches] = useState<any[]>([])
+  const [appliedJobs, setAppliedJobs] = useState<any[]>([])
   const [interviews, setInterviews] = useState<any[]>([])
   const [mockInterviews, setMockInterviews] = useState<any[]>([])
   const [refreshingMatches, setRefreshingMatches] = useState(false)
@@ -51,10 +54,15 @@ export default function CandidateDashboard() {
       }
 
       if (matchesRes.status === 'fulfilled') {
-        setMatches(matchesRes.value.data.matches || [])
+        const allMatches = matchesRes.value.data.matches || []
+        setMatches(allMatches)
+        // Filter applied jobs (where candidate expressed interest)
+        const applied = allMatches.filter((m: any) => m.candidateInterested === true)
+        setAppliedJobs(applied)
       } else {
         console.warn('Matches failed:', matchesRes.reason?.message)
         setMatches([])
+        setAppliedJobs([])
       }
 
       if (interviewsRes.status === 'fulfilled') {
@@ -99,15 +107,12 @@ export default function CandidateDashboard() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <LoadingSpinner fullScreen message="Loading your dashboard..." size="lg" />
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <PageTransition>
+      <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Candidate Dashboard</h1>
@@ -161,6 +166,61 @@ export default function CandidateDashboard() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 mb-8">
+          {/* Applied Jobs */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-bold mb-4">Applied Jobs</h2>
+            {appliedJobs.length === 0 ? (
+              <div className="text-center py-8">
+                <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600 mb-2">No applications yet</p>
+                <p className="text-sm text-gray-500 mb-4">
+                  Browse jobs and click "Apply" to start applying
+                </p>
+                <Link
+                  href="/jobs"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm inline-block"
+                >
+                  Browse Jobs
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {appliedJobs.slice(0, 5).map((match) => (
+                  <div key={match._id} className="border-b pb-3 last:border-b-0">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{match.jobId?.title || 'Job Title'}</p>
+                        <p className="text-sm text-gray-600">{match.jobId?.company?.name || 'Company'}</p>
+                      </div>
+                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        Applied
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <Link 
+                        href={`/jobs/${match.jobId?._id}`} 
+                        className="text-blue-600 text-sm hover:underline font-medium"
+                      >
+                        View Details →
+                      </Link>
+                      <span className="text-xs text-gray-500">
+                        {match.matchScore}% match
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {appliedJobs.length > 5 && (
+                  <Link
+                    href="/matches"
+                    className="block text-center text-blue-600 hover:text-blue-700 font-medium pt-3"
+                  >
+                    View All {appliedJobs.length} Applications →
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Top Matches */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex justify-between items-center mb-4">
@@ -311,6 +371,7 @@ export default function CandidateDashboard() {
         )}
       </div>
     </div>
+    </PageTransition>
   )
 }
 

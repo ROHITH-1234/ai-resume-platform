@@ -12,6 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "serverless-http": "^3.2.0",
     "@clerk/clerk-sdk-node": "^4.13.1",
     "@google/generative-ai": "^0.2.0",
     "axios": "^1.6.2",

@@ -217,4 +217,69 @@ router.patch('/:matchId/interest', requireAuth, requireRole('candidate'), async 
   }
 });
 
+// Create manual match (recruiter) - for scheduling interviews
+router.post('/manual', requireAuth, requireRole('recruiter', 'admin'), async (req, res) => {
+  try {
+    const { candidateId, jobId } = req.body;
+
+    if (!candidateId || !jobId) {
+      return res.status(400).json({ error: 'candidateId and jobId are required' });
+    }
+
+    // Check if match already exists
+    const existingMatch = await Match.findOne({ candidateId, jobId });
+    if (existingMatch) {
+      return res.json({ match: existingMatch });
+    }
+
+    // Verify candidate and job exist
+    const candidate = await Candidate.findById(candidateId);
+    const job = await Job.findById(jobId);
+
+    if (!candidate) {
+      return res.status(404).json({ error: 'Candidate not found' });
+    }
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Verify recruiter owns the job
+    if (job.recruiterId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to create match for this job' });
+    }
+
+    // Calculate match score using the matching service
+    let matchScore = 50; // Default score
+    try {
+      const matches = await jobMatchingService.findMatchesForJob(jobId);
+      const calculatedMatch = matches.find(m => m.candidateId.toString() === candidateId.toString());
+      if (calculatedMatch) {
+        matchScore = calculatedMatch.matchScore;
+      }
+    } catch (error) {
+      console.log('Could not calculate match score, using default:', error.message);
+    }
+
+    // Create the match
+    const match = await Match.create({
+      candidateId,
+      jobId,
+      matchScore,
+      status: 'pending',
+      recruiterViewed: true,
+      candidateViewed: false
+    });
+
+    const populatedMatch = await Match.findById(match._id)
+      .populate('candidateId')
+      .populate('jobId');
+
+    res.status(201).json({ match: populatedMatch });
+  } catch (error) {
+    console.error('Error creating manual match:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
   Briefcase, Upload, Target, Calendar, MessageCircle, 
-  BarChart3, Brain, Home, Menu, X 
+  BarChart3, Brain, Home, Menu, X, User 
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -30,6 +30,7 @@ export default function Navigation() {
 
   const candidateLinks = [
     { href: '/dashboard/candidate', label: 'Dashboard', icon: Home },
+    { href: '/profile', label: 'My Profile', icon: User },
     { href: '/resume/upload', label: 'Upload Resume', icon: Upload },
     { href: '/jobs', label: 'Browse Jobs', icon: Briefcase },
     { href: '/matches', label: 'My Matches', icon: Target },

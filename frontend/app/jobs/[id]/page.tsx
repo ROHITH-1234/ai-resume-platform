@@ -52,12 +52,37 @@ export default function JobDetailPage() {
       }
 
       apiClient.setToken(token)
-      // TODO: Implement apply logic - for now just show success
-      setApplied(true)
-      setTimeout(() => setApplied(false), 3000)
-    } catch (error) {
+      
+      // First, find if there's a match for this job
+      const matchesRes = await apiClient.getCandidateMatches({ jobId })
+      const matches = matchesRes.data.matches || []
+      
+      if (matches.length > 0) {
+        // If match exists, express interest
+        const match = matches[0]
+        await apiClient.expressInterest(match._id, true)
+        setApplied(true)
+        alert('Application submitted successfully!')
+      } else {
+        // If no match exists, trigger matching first
+        await apiClient.triggerCandidateMatching()
+        // Then try to find the match again
+        const newMatchesRes = await apiClient.getCandidateMatches({ jobId })
+        const newMatches = newMatchesRes.data.matches || []
+        
+        if (newMatches.length > 0) {
+          const match = newMatches[0]
+          await apiClient.expressInterest(match._id, true)
+          setApplied(true)
+          alert('Application submitted successfully!')
+        } else {
+          alert('Unable to apply. Please upload your resume first.')
+          router.push('/resume/upload')
+        }
+      }
+    } catch (error: any) {
       console.error('Failed to apply:', error)
-      alert('Failed to apply. Please try again.')
+      alert(error.response?.data?.error || 'Failed to apply. Please try again.')
     } finally {
       setApplying(false)
     }

@@ -158,6 +158,10 @@ class ApiClient {
     return this.client.patch(`/matches/${matchId}/interest`, { interested });
   }
 
+  async createManualMatch(candidateId: string, jobId: string) {
+    return this.client.post('/matches/manual', { candidateId, jobId });
+  }
+
   // Interviews
   async scheduleInterview(data: any) {
     return this.client.post('/interviews', data);
@@ -236,6 +240,20 @@ class ApiClient {
 
   async getAdminAnalytics() {
     return this.client.get('/analytics/admin');
+  }
+
+  // Candidates
+  async getCandidateProfile() {
+    return this.client.get('/candidates/me');
+  }
+
+  // Helper method for generic GET/POST
+  async get(url: string, params?: any) {
+    return this.client.get(url, { params });
+  }
+
+  async post(url: string, data?: any) {
+    return this.client.post(url, data);
   }
 }
 

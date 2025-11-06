@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 import { Briefcase, User, Target, TrendingUp, Calendar, MessageCircle, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/LoadingSpinner'
+import PageTransition from '@/components/PageTransition'
 
 export default function MatchesPage() {
   const { getToken } = useAuth()
@@ -34,8 +36,8 @@ export default function MatchesPage() {
         const response = await apiClient.getMyResumes()
         setHasResume(response.data.resumes && response.data.resumes.length > 0)
       }
-    } catch (error) {
-      console.error('Error checking resume:', error)
+    } catch (err) {
+      console.error('Error checking resume:', err)
     } finally {
       setCheckingResume(false)
     }
@@ -59,8 +61,8 @@ export default function MatchesPage() {
 
       const response = await apiClient.getCandidateMatches(params)
       setMatches(response.data.matches || [])
-    } catch (error) {
-      console.error('Failed to load matches:', error)
+    } catch (err) {
+      console.error('Failed to load matches:', err)
       setMatches([])
     } finally {
       setLoading(false)
@@ -77,8 +79,8 @@ export default function MatchesPage() {
       
       // Refresh matches
       loadMatches()
-    } catch (error) {
-      console.error('Failed to update interest:', error)
+    } catch (err) {
+      console.error('Failed to update interest:', err)
       alert('Failed to update interest. Please try again.')
     }
   }
@@ -97,8 +99,13 @@ export default function MatchesPage() {
     return 'Potential Match'
   }
 
+  if (loading && !matches.length) {
+    return <LoadingSpinner fullScreen message="Finding your matches..." size="lg" />
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <PageTransition>
+      <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -333,5 +340,6 @@ export default function MatchesPage() {
         )}
       </div>
     </div>
+    </PageTransition>
   )
 }
