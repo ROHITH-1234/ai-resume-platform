@@ -84,8 +84,8 @@ class MockInterviewService {
     return difficultyQuestions.slice(0, count);
   }
 
-  // Generate interview questions based on domain
-  async generateQuestions(domain, difficulty = 'medium', count = 5) {
+  // Generate interview questions based on domain and resume data
+  async generateQuestions(domain, difficulty = 'medium', count = 5, resumeData = null) {
     try {
       // Check if Gemini API key is available
       if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key') {
@@ -95,8 +95,44 @@ class MockInterviewService {
 
       const model = genAI.getGenerativeModel({ model: 'models/gemini-2.5-flash' });
 
+      // Build context from resume data
+      let resumeContext = '';
+      if (resumeData && resumeData.parsedData) {
+        const { skills, experience, education, projects } = resumeData.parsedData;
+        
+        resumeContext = `
+
+CANDIDATE PROFILE:
+`;
+        
+        if (skills?.technical?.length > 0) {
+          resumeContext += `- Technical Skills: ${skills.technical.join(', ')}\n`;
+        }
+        
+        if (experience?.length > 0) {
+          resumeContext += `- Work Experience:\n`;
+          experience.slice(0, 3).forEach(exp => {
+            resumeContext += `  * ${exp.position} at ${exp.company}\n`;
+          });
+        }
+        
+        if (education?.length > 0) {
+          resumeContext += `- Education: ${education[0].degree} in ${education[0].fieldOfStudy}\n`;
+        }
+        
+        if (projects?.length > 0) {
+          resumeContext += `- Projects:\n`;
+          projects.slice(0, 2).forEach(proj => {
+            resumeContext += `  * ${proj.name}: ${proj.technologies?.join(', ') || 'N/A'}\n`;
+          });
+        }
+      }
+
       const prompt = `
-Generate ${count} interview questions for a ${difficulty} level ${domain} position.
+Generate ${count} interview questions for a ${difficulty} level ${domain} position${resumeContext ? ' tailored to this candidate profile' : ''}.
+${resumeContext}
+Make questions specific to the candidate's skills and experience when possible. For technical questions, reference their actual tech stack. For behavioral questions, relate to their work experience.
+
 Return ONLY a valid JSON array of questions (no markdown, no extra text):
 
 [
@@ -106,6 +142,7 @@ Return ONLY a valid JSON array of questions (no markdown, no extra text):
 ]
 
 Make questions realistic and relevant to ${domain}. Difficulty: ${difficulty}.
+${resumeContext ? 'IMPORTANT: Base questions on the candidate\'s actual skills and experience listed above.' : ''}
 `;
 
       const result = await model.generateContent(prompt);
@@ -306,7 +343,26 @@ Return ONLY the JSON object.
 
   // Start a new mock interview
   async startInterview(candidateId, domain, difficulty = 'medium') {
-    const questions = await this.generateQuestions(domain, difficulty, 5);
+    // Fetch candidate's latest resume
+    const Resume = require('../models/Resume.model');
+    let resumeData = null;
+    
+    try {
+      resumeData = await Resume.findOne({ 
+        candidateId, 
+        parseStatus: 'completed' 
+      }).sort({ createdAt: -1 });
+      
+      if (resumeData) {
+        console.log('📄 Using resume data for personalized questions');
+      } else {
+        console.log('📝 No resume found, generating generic questions');
+      }
+    } catch (error) {
+      console.warn('⚠️  Could not fetch resume:', error.message);
+    }
+    
+    const questions = await this.generateQuestions(domain, difficulty, 5, resumeData);
     
     const mockInterview = await MockInterview.create({
       candidateId,

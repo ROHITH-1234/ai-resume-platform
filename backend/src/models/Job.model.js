@@ -65,6 +65,12 @@ const jobSchema = new mongoose.Schema({
   views: {
     type: Number,
     default: 0
+  },
+  metadata: {
+    source: String, // 'adzuna', 'manual', etc.
+    externalId: String,
+    externalUrl: String,
+    importedAt: Date
   }
 }, {
   timestamps: true

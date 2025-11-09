@@ -210,7 +210,14 @@ export default function MatchesPage() {
           </div>
         ) : (
           <div className="grid gap-6">
-            {matches.map((match) => (
+            {matches.map((match) => {
+              // Handle both jobId and job field names (backend returns jobId)
+              const job = match.jobId || match.job;
+              const jobTitle = job?.title || 'Job Title';
+              const jobCompany = job?.company?.name || job?.company || 'Company';
+              const jobId = job?._id;
+
+              return (
               <div
                 key={match._id}
                 className="bg-white rounded-xl shadow-md hover:shadow-xl transition p-6"
@@ -219,13 +226,13 @@ export default function MatchesPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-2xl font-bold text-gray-900">
-                        {match.job?.title || 'Job Title'}
+                        {jobTitle}
                       </h3>
                       <span className={`px-3 py-1 rounded-full text-sm font-bold ${getMatchScoreColor(match.matchScore)}`}>
                         {match.matchScore}% Match
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-2">{match.job?.company?.name || match.job?.company || 'Company'}</p>
+                    <p className="text-gray-600 mb-2">{jobCompany}</p>
                     <p className="text-sm text-gray-500">{getMatchScoreLabel(match.matchScore)}</p>
                   </div>
                   <div className="text-right">
@@ -273,15 +280,17 @@ export default function MatchesPage() {
 
                 {/* Actions */}
                 <div className="flex flex-wrap gap-3">
-                  <Link
-                    href={`/jobs/${match.job?._id}`}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2"
-                  >
-                    <Briefcase className="w-4 h-4" />
-                    View Job Details
-                  </Link>
+                  {jobId && (
+                    <Link
+                      href={`/jobs/${jobId}`}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2"
+                    >
+                      <Briefcase className="w-4 h-4" />
+                      View Job Details
+                    </Link>
+                  )}
 
-                  {match.candidateInterest === undefined && (
+                  {match.candidateInterested === undefined && (
                     <>
                       <button
                         onClick={() => handleInterest(match._id, true)}
@@ -300,14 +309,14 @@ export default function MatchesPage() {
                     </>
                   )}
 
-                  {match.candidateInterest === true && (
+                  {match.candidateInterested === true && (
                     <button className="bg-green-100 text-green-700 px-6 py-2 rounded-lg font-medium flex items-center gap-2 cursor-default">
                       <CheckCircle className="w-4 h-4" />
                       Marked as Interested
                     </button>
                   )}
 
-                  {match.candidateInterest === false && (
+                  {match.candidateInterested === false && (
                     <button className="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium flex items-center gap-2 cursor-default">
                       <XCircle className="w-4 h-4" />
                       Marked as Not Interested
@@ -335,7 +344,7 @@ export default function MatchesPage() {
                   )}
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </div>

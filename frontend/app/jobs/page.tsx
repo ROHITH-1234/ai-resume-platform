@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -218,9 +219,19 @@ export default function JobsPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-4 mb-2">
-                      <h3 className="text-2xl font-bold text-gray-900">
-                        {job.title}
-                      </h3>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-2xl font-bold text-gray-900">
+                            {job.title}
+                          </h3>
+                          {/* Adzuna Job Badge */}
+                          {job.metadata?.source === 'adzuna' && (
+                            <span className="px-2 py-1 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded text-xs font-semibold border border-purple-200">
+                              External
+                            </span>
+                          )}
+                        </div>
+                      </div>
                       {/* Match Score Badge for Candidates */}
                       {userRole === 'candidate' && matches[job._id] && (
                         <div className="flex flex-col items-end gap-1">
@@ -284,15 +295,40 @@ export default function JobsPage() {
                 )}
 
                 <div className="flex gap-3">
-                  <Link
-                    href={`/jobs/${job._id}`}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
-                  >
-                    View Details
-                  </Link>
-                  <button className="border border-blue-600 text-blue-600 px-6 py-2 rounded-lg hover:bg-blue-50 transition font-medium">
-                    Save Job
-                  </button>
+                  {/* For Adzuna jobs, show Apply Externally button */}
+                  {job.metadata?.source === 'adzuna' && job.metadata?.externalUrl ? (
+                    <>
+                      <a
+                        href={job.metadata.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium inline-flex items-center gap-2"
+                      >
+                        Apply on Company Site
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                      <Link
+                        href={`/jobs/${job._id}`}
+                        className="border border-blue-600 text-blue-600 px-6 py-2 rounded-lg hover:bg-blue-50 transition font-medium"
+                      >
+                        View Details
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href={`/jobs/${job._id}`}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+                      >
+                        View Details
+                      </Link>
+                      <button className="border border-blue-600 text-blue-600 px-6 py-2 rounded-lg hover:bg-blue-50 transition font-medium">
+                        Save Job
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
               )

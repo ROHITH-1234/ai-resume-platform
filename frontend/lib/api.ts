@@ -129,6 +129,16 @@ class ApiClient {
     return this.client.delete(`/jobs/${jobId}`);
   }
 
+  // Adzuna Job Import
+  async importAdzunaJobs(params: { keyword?: string; location?: string; salary?: string; country?: string; recruiterId?: string }) {
+    return this.client.post('/adzuna/import', params);
+  }
+
+  // Adzuna Job Import (Public - No Auth Required)
+  async importAdzunaJobsPublic(params: { keyword?: string; location?: string; salary?: string; country?: string }) {
+    return this.client.post('/adzuna/import-public', params);
+  }
+
   // Matches
   async getCandidateMatches(params?: any) {
     return this.client.get('/matches/candidate', { params });

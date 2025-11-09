@@ -217,9 +217,17 @@ export default function JobDetailPage() {
                   <Briefcase className="w-12 h-12 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {job.title}
-                  </h1>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h1 className="text-3xl font-bold text-gray-900">
+                      {job.title}
+                    </h1>
+                    {/* Adzuna Job Badge */}
+                    {job.metadata?.source === 'adzuna' && (
+                      <span className="px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded-lg text-sm font-semibold border border-purple-200">
+                        External Job
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 text-gray-600 mb-4">
                     <Building className="w-5 h-5" />
                     <span className="text-lg font-medium">{job.company?.name || job.company || 'Company'}</span>
@@ -255,28 +263,50 @@ export default function JobDetailPage() {
               )}
 
               <div className="flex gap-4">
-                <button
-                  onClick={handleApply}
-                  disabled={applying || applied}
-                  className="flex-1 bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {applying ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Applying...
-                    </>
-                  ) : applied ? (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      Applied
-                    </>
-                  ) : (
-                    'Apply Now'
-                  )}
-                </button>
-                <button className="px-8 py-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold">
-                  Save
-                </button>
+                {/* For Adzuna jobs, redirect to company website */}
+                {job.metadata?.source === 'adzuna' && job.metadata?.externalUrl ? (
+                  <>
+                    <a
+                      href={job.metadata.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg flex items-center justify-center gap-2"
+                    >
+                      Apply on Company Site
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                    <button className="px-8 py-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold">
+                      Save
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleApply}
+                      disabled={applying || applied}
+                      className="flex-1 bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {applying ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Applying...
+                        </>
+                      ) : applied ? (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          Applied
+                        </>
+                      ) : (
+                        'Apply Now'
+                      )}
+                    </button>
+                    <button className="px-8 py-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold">
+                      Save
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 

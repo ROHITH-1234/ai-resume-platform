@@ -23,6 +23,30 @@ const candidateSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  headline: {
+    type: String,
+    trim: true
+  },
+  bio: {
+    type: String,
+    trim: true
+  },
+  website: {
+    type: String,
+    trim: true
+  },
+  linkedin: {
+    type: String,
+    trim: true
+  },
+  github: {
+    type: String,
+    trim: true
+  },
+  twitter: {
+    type: String,
+    trim: true
+  },
   location: {
     city: String,
     state: String,
@@ -63,6 +87,21 @@ const candidateSchema = new mongoose.Schema({
     dateIssued: Date,
     expiryDate: Date,
     credentialId: String
+  }],
+  projects: [{
+    name: String,
+    description: String,
+    technologies: [String],
+    url: String,
+    startDate: String,
+    endDate: String
+  }],
+  languages: [{
+    name: String,
+    proficiency: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced', 'native']
+    }
   }],
   preferences: {
     jobType: [String], // ['full-time', 'part-time', 'contract', 'remote']

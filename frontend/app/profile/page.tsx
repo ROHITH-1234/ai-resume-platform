@@ -89,7 +89,7 @@ export default function CandidateProfile() {
               </div>
             </div>
             <button
-              onClick={() => router.push('/resume/upload')}
+              onClick={() => router.push('/profile/edit')}
               className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
               <Edit className="w-4 h-4" />

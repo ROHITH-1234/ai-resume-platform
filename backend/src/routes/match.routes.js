@@ -46,7 +46,7 @@ router.get('/candidate', requireAuth, requireRole('candidate'), async (req, res)
       return res.json({ matches: [] });
     }
 
-    const { minScore = 30, limit = 20, status } = req.query;
+    const { minScore = 30, limit = 20, status, candidateInterest } = req.query;
     
     const query = {
       candidateId: candidate._id,
@@ -57,16 +57,72 @@ router.get('/candidate', requireAuth, requireRole('candidate'), async (req, res)
       query.status = status;
     }
 
+    // Handle candidateInterest filter
+    if (candidateInterest !== undefined) {
+      if (candidateInterest === 'true') {
+        query.candidateInterested = true;
+      } else if (candidateInterest === 'false') {
+        query.candidateInterested = false;
+      }
+    }
+
     const matches = await Match.find(query)
       .populate('jobId')
       .sort({ matchScore: -1 })
       .limit(parseInt(limit));
 
-    res.json({ matches });
+    // Transform matches to include useful data
+    const transformedMatches = matches.map(match => ({
+      _id: match._id,
+      jobId: match.jobId,
+      matchScore: match.matchScore,
+      candidateInterested: match.candidateInterested,
+      status: match.status,
+      createdAt: match.createdAt,
+      matchedSkills: match.matchDetails?.matchingSkills || [],
+      matchReasons: generateMatchReasons(match),
+      scoreBreakdown: match.scoreBreakdown
+    }));
+
+    res.json({ matches: transformedMatches });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Helper function to generate human-readable match reasons
+function generateMatchReasons(match) {
+  const reasons = [];
+  
+  if (match.scoreBreakdown?.skillsMatch >= 70) {
+    reasons.push(`Strong skill alignment (${Math.round(match.scoreBreakdown.skillsMatch)}% match)`);
+  } else if (match.scoreBreakdown?.skillsMatch >= 50) {
+    reasons.push(`Good skill match (${Math.round(match.scoreBreakdown.skillsMatch)}% match)`);
+  }
+  
+  if (match.scoreBreakdown?.experienceMatch >= 80) {
+    reasons.push('Experience level is a perfect match');
+  } else if (match.scoreBreakdown?.experienceMatch >= 60) {
+    reasons.push('Experience level is compatible');
+  }
+  
+  if (match.scoreBreakdown?.locationMatch >= 80) {
+    reasons.push('Location matches your preferences');
+  }
+  
+  if (match.scoreBreakdown?.salaryMatch >= 70) {
+    reasons.push('Salary range aligns with expectations');
+  }
+  
+  if (match.matchDetails?.matchingSkills && match.matchDetails.matchingSkills.length > 0) {
+    const skillCount = match.matchDetails.matchingSkills.length;
+    if (skillCount >= 5) {
+      reasons.push(`${skillCount} matching skills found`);
+    }
+  }
+  
+  return reasons.length > 0 ? reasons : ['This position matches your profile'];
+}
 
 // Get matches for a job (recruiter)
 router.get('/job/:jobId', requireAuth, requireRole('recruiter', 'admin'), async (req, res) => {
